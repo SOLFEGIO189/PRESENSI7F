@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absen Kelas 7F SMPN 189 Jakarta</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-success {
+            animation: pulseSuccess 0.6s ease-in-out;
+        }
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 font-sans">
+  <div class="min-h-full p-4">
+   <div class="max-w-4xl mx-auto"><!-- Header -->
+    <header class="text-center mb-8 fade-in">
+     <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-blue-500">
+      <h1 id="judul-kelas" class="text-3xl font-bold text-gray-800 mb-2">Kelas 7F</h1>
+      <h2 id="nama-sekolah" class="text-xl text-blue-600 mb-3">SMPN 189 Jakarta</h2>
+      <div class="flex justify-center items-center space-x-4 text-sm text-gray-600">
+       <div class="flex items-center"><span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span> <span id="tanggal-hari"></span>
+       </div>
+       <div class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> <span id="waktu-sekarang"></span>
+       </div>
+      </div>
+     </div>
+    </header><!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+     <div class="bg-white rounded-xl shadow-md p-4 text-center border-l-4 border-green-500">
+      <div class="text-2xl font-bold text-green-600" id="hadir-count">
+       0
+      </div>
+      <div class="text-sm text-gray-600">
+       Hadir
+      </div>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-4 text-center border-l-4 border-yellow-500">
+      <div class="text-2xl font-bold text-yellow-600" id="izin-count">
+       0
+      </div>
+      <div class="text-sm text-gray-600">
+       Izin
+      </div>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-4 text-center border-l-4 border-red-500">
+      <div class="text-2xl font-bold text-red-600" id="sakit-count">
+       0
+      </div>
+      <div class="text-sm text-gray-600">
+       Sakit
+      </div>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-4 text-center border-l-4 border-gray-500">
+      <div class="text-2xl font-bold text-gray-600" id="alpha-count">
+       0
+      </div>
+      <div class="text-sm text-gray-600">
+       Alpha
+      </div>
+     </div>
+    </div><!-- Daftar Siswa -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+     <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+      <h3 class="text-xl font-bold text-white mb-4">Daftar Absensi Siswa</h3>
+      <div class="flex flex-wrap gap-2"><button onclick="markAllStatus('Hadir')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"> ✓ Semua Hadir </button> <button onclick="resetAllStatus()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"> 🔄 Reset Semua </button> <button onclick="exportData()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"> 📊 Lihat Rekap </button>
+      </div>
+     </div>
+     <div class="p-6">
+      <div id="loading-indicator" class="text-center py-8 hidden">
+       <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+       <p class="mt-2 text-gray-600">Menyimpan data...</p>
+      </div>
+      <div id="daftar-siswa" class="space-y-3"><!-- Siswa akan dimuat di sini -->
+      </div>
+     </div>
+    </div><!-- Footer -->
+    <footer class="text-center mt-8">
+     <div class="bg-white rounded-xl shadow-md p-4">
+      <p id="footer-text" class="text-gray-600 text-sm">Semangat belajar! 📚✨</p>
+     </div>
+    </footer><!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50"><span id="toast-message"></span>
+    </div>
+   </div>
+  </div>
+  <script>
+        // Daftar siswa kelas 7F
+        const daftarSiswa = [
+            "Ade Irma", "Ahmad Fajri Pratama", "Ahmad Kaylani Alfaro", "Aisyah Arani",
+            "Al Hafidz Pratama", "Alifiandra Widy Raditya", "Amirah Andriani", "Angga Feri Saputra",
+            "Annisa Fitri Yani", "Delliana Jovitta Nuri", "Ersa Nahdah Zuhura", "Iqbal Rizki Jaya",
+            "Luthfiyah Najla Syahputri", "M. Ibnu Dimyathi", "Monica Theona Cellystin", "Muhamad Ardiyansyah",
+            "Muhammad Faiz Al Kamil", "Muhammad Haidzami Zahir", "Muhammad Ibrahimovic", "Muhammad Ikbal",
+            "Muhammad Nabil Olivian", "Muhammad Riffat Maherza", "Muhammad Wisnu Pratama", "Mutiara Maulida",
+            "Myeshia Cintakirana Syahputri", "Nadia Nurul Batrisya", "Nazifah Awalia", "Nur Haniyah",
+            "Puspa Chairunnisa", "Reyvan Al - Hazami", "Safa Bilqis Zahira", "Satria Lintang Samudragupta",
+            "Sherin Azaela Natasha", "Siti Nurfadliah", "Syifa Alifia", "Zahra Rizky Aprilia"
+        ];
+
+        let currentData = [];
+        let currentRecordCount = 0;
+
+        // Default config
+        const defaultConfig = {
+            judul_kelas: "Kelas 7F",
+            nama_sekolah: "SMPN 189 Jakarta",
+            footer_text: "Semangat belajar! 📚✨",
+            primary_color: "#2563eb",
+            secondary_color: "#10b981",
+            background_color: "#f8fafc",
+            accent_color: "#8b5cf6",
+            text_color: "#1f2937"
+        };
+
+        // Data handler untuk SDK
+        const dataHandler = {
+            onDataChanged(data) {
+                currentData = data;
+                currentRecordCount = data.length;
+                updateStats();
+                updateStudentList();
+            }
+        };
+
+        // Element SDK implementation
+        const element = {
+            defaultConfig: defaultConfig,
+            render: async (config) => {
+                // Update text content
+                document.getElementById('judul-kelas').textContent = config.judul_kelas || defaultConfig.judul_kelas;
+                document.getElementById('nama-sekolah').textContent = config.nama_sekolah || defaultConfig.nama_sekolah;
+                document.getElementById('footer-text').textContent = config.footer_text || defaultConfig.footer_text;
+
+                // Update colors
+                const primaryColor = config.primary_color || defaultConfig.primary_color;
+                const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+                const backgroundColor = config.background_color || defaultConfig.background_color;
+                const accentColor = config.accent_color || defaultConfig.accent_color;
+                const textColor = config.text_color || defaultConfig.text_color;
+
+                document.body.style.background = `linear-gradient(to bottom right, ${backgroundColor}, #e0e7ff)`;
+                
+                // Update header colors
+                const header = document.querySelector('header .bg-white');
+                if (header) {
+                    header.style.borderLeftColor = primaryColor;
+                }
+
+                // Update gradient header
+                const gradientHeader = document.querySelector('.bg-gradient-to-r');
+                if (gradientHeader) {
+                    gradientHeader.style.background = `linear-gradient(to right, ${primaryColor}, ${accentColor})`;
+                }
+
+                // Update buttons
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    if (button.classList.contains('bg-green-500')) {
+                        button.style.backgroundColor = secondaryColor;
+                    } else if (button.classList.contains('bg-purple-500')) {
+                        button.style.backgroundColor = accentColor;
+                    }
+                });
+
+                // Update text colors
+                document.getElementById('judul-kelas').style.color = textColor;
+            },
+            mapToCapabilities: (config) => ({
+                recolorables: [
+                    {
+                        get: () => config.primary_color || defaultConfig.primary_color,
+                        set: (value) => {
+                            config.primary_color = value;
+                            window.elementSdk.setConfig({ primary_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.secondary_color || defaultConfig.secondary_color,
+                        set: (value) => {
+                            config.secondary_color = value;
+                            window.elementSdk.setConfig({ secondary_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.background_color || defaultConfig.background_color,
+                        set: (value) => {
+                            config.background_color = value;
+                            window.elementSdk.setConfig({ background_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.accent_color || defaultConfig.accent_color,
+                        set: (value) => {
+                            config.accent_color = value;
+                            window.elementSdk.setConfig({ accent_color: value });
+                        }
+                    },
+                    {
+                        get: () => config.text_color || defaultConfig.text_color,
+                        set: (value) => {
+                            config.text_color = value;
+                            window.elementSdk.setConfig({ text_color: value });
+                        }
+                    }
+                ],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            }),
+            mapToEditPanelValues: (config) => new Map([
+                ["judul_kelas", config.judul_kelas || defaultConfig.judul_kelas],
+                ["nama_sekolah", config.nama_sekolah || defaultConfig.nama_sekolah],
+                ["footer_text", config.footer_text || defaultConfig.footer_text]
+            ])
+        };
+
+        // Initialize aplikasi
+        async function initApp() {
+            // Initialize Element SDK
+            if (window.elementSdk) {
+                await window.elementSdk.init(element);
+            }
+
+            // Initialize Data SDK
+            if (window.dataSdk) {
+                const initResult = await window.dataSdk.init(dataHandler);
+                if (!initResult.isOk) {
+                    showToast("Gagal menginisialisasi penyimpanan data", "error");
+                    return;
+                }
+            }
+
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+            renderStudentList();
+        }
+
+        // Update tanggal dan waktu
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'Asia/Jakarta'
+            };
+            
+            document.getElementById('tanggal-hari').textContent = now.toLocaleDateString('id-ID', options);
+            document.getElementById('waktu-sekarang').textContent = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Jakarta'
+            });
+        }
+
+        // Render daftar siswa
+        function renderStudentList() {
+            const container = document.getElementById('daftar-siswa');
+            container.innerHTML = '';
+
+            daftarSiswa.forEach((nama, index) => {
+                const studentCard = createStudentCard(nama, index + 1);
+                container.appendChild(studentCard);
+            });
+        }
+
+        // Buat kartu siswa
+        function createStudentCard(nama, nomor) {
+            const div = document.createElement('div');
+            div.className = 'bg-gray-50 rounded-xl p-4 border border-gray-200 hover:shadow-md transition-shadow';
+            div.dataset.studentName = nama;
+
+            div.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                            ${nomor}
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${nama}</h4>
+                            <p class="text-sm text-gray-500" id="status-${nomor}">Belum diabsen</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="markAttendance('${nama}', 'Hadir', ${nomor})" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                            ✓ Hadir
+                        </button>
+                        <button onclick="markAttendance('${nama}', 'Izin', ${nomor})" 
+                                class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                            📝 Izin
+                        </button>
+                        <button onclick="markAttendance('${nama}', 'Sakit', ${nomor})" 
+                                class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                            🤒 Sakit
+                        </button>
+                        <button onclick="markAttendance('${nama}', 'Alpha', ${nomor})" 
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors">
+                            ❌ Alpha
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Tandai kehadiran siswa
+        async function markAttendance(nama, status, nomor) {
+            if (currentRecordCount >= 999) {
+                showToast("Batas maksimum 999 data tercapai. Hapus beberapa data lama terlebih dahulu.", "error");
+                return;
+            }
+
+            showLoading(true);
+
+            const attendanceData = {
+                nama_siswa: nama,
+                status: status,
+                tanggal: new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }),
+                waktu: new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' }),
+                keterangan: `Absen ${status.toLowerCase()} pada ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
+            };
+
+            if (window.dataSdk) {
+                const result = await window.dataSdk.create(attendanceData);
+                
+                if (result.isOk) {
+                    // Update UI
+                    const statusElement = document.getElementById(`status-${nomor}`);
+                    statusElement.textContent = `${status} - ${attendanceData.waktu}`;
+                    statusElement.className = `text-sm ${getStatusColor(status)}`;
+
+                    // Add animation
+                    const card = document.querySelector(`[data-student-name="${nama}"]`);
+                    card.classList.add('pulse-success');
+                    setTimeout(() => card.classList.remove('pulse-success'), 600);
+
+                    showToast(`${nama} berhasil diabsen: ${status}`, "success");
+                } else {
+                    showToast("Gagal menyimpan data absensi", "error");
+                }
+            }
+
+            showLoading(false);
+        }
+
+        // Dapatkan warna status
+        function getStatusColor(status) {
+            switch(status) {
+                case 'Hadir': return 'text-green-600';
+                case 'Izin': return 'text-yellow-600';
+                case 'Sakit': return 'text-orange-600';
+                case 'Alpha': return 'text-red-600';
+                default: return 'text-gray-500';
+            }
+        }
+
+        // Tandai semua siswa dengan status tertentu
+        async function markAllStatus(status) {
+            if (currentRecordCount + daftarSiswa.length > 999) {
+                showToast("Tidak dapat menandai semua siswa. Batas maksimum 999 data akan terlampaui.", "error");
+                return;
+            }
+
+            showLoading(true);
+            let successCount = 0;
+
+            for (let i = 0; i < daftarSiswa.length; i++) {
+                const nama = daftarSiswa[i];
+                const attendanceData = {
+                    nama_siswa: nama,
+                    status: status,
+                    tanggal: new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' }),
+                    waktu: new Date().toLocaleTimeString('id-ID', { timeZone: 'Asia/Jakarta' }),
+                    keterangan: `Absen ${status.toLowerCase()} pada ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`
+                };
+
+                if (window.dataSdk) {
+                    const result = await window.dataSdk.create(attendanceData);
+                    if (result.isOk) {
+                        successCount++;
+                        // Update UI
+                        const statusElement = document.getElementById(`status-${i + 1}`);
+                        statusElement.textContent = `${status} - ${attendanceData.waktu}`;
+                        statusElement.className = `text-sm ${getStatusColor(status)}`;
+                    }
+                }
+            }
+
+            showLoading(false);
+            showToast(`${successCount} siswa berhasil diabsen: ${status}`, "success");
+        }
+
+        // Reset semua status
+        function resetAllStatus() {
+            daftarSiswa.forEach((nama, index) => {
+                const statusElement = document.getElementById(`status-${index + 1}`);
+                statusElement.textContent = 'Belum diabsen';
+                statusElement.className = 'text-sm text-gray-500';
+            });
+            showToast("Status absensi direset", "success");
+        }
+
+        // Update statistik
+        function updateStats() {
+            const today = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
+            const todayData = currentData.filter(record => record.tanggal === today);
+
+            const stats = {
+                Hadir: 0,
+                Izin: 0,
+                Sakit: 0,
+                Alpha: 0
+            };
+
+            todayData.forEach(record => {
+                if (stats.hasOwnProperty(record.status)) {
+                    stats[record.status]++;
+                }
+            });
+
+            document.getElementById('hadir-count').textContent = stats.Hadir;
+            document.getElementById('izin-count').textContent = stats.Izin;
+            document.getElementById('sakit-count').textContent = stats.Sakit;
+            document.getElementById('alpha-count').textContent = stats.Alpha;
+        }
+
+        // Update daftar siswa berdasarkan data
+        function updateStudentList() {
+            const today = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
+            const todayData = currentData.filter(record => record.tanggal === today);
+
+            // Reset semua status
+            daftarSiswa.forEach((nama, index) => {
+                const statusElement = document.getElementById(`status-${index + 1}`);
+                const latestRecord = todayData
+                    .filter(record => record.nama_siswa === nama)
+                    .sort((a, b) => new Date(`${a.tanggal} ${a.waktu}`) - new Date(`${b.tanggal} ${b.waktu}`))
+                    .pop();
+
+                if (latestRecord) {
+                    statusElement.textContent = `${latestRecord.status} - ${latestRecord.waktu}`;
+                    statusElement.className = `text-sm ${getStatusColor(latestRecord.status)}`;
+                } else {
+                    statusElement.textContent = 'Belum diabsen';
+                    statusElement.className = 'text-sm text-gray-500';
+                }
+            });
+        }
+
+        // Export data (tampilkan ringkasan)
+        function exportData() {
+            const today = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta' });
+            const todayData = currentData.filter(record => record.tanggal === today);
+            
+            if (todayData.length === 0) {
+                showToast("Belum ada data absensi hari ini", "error");
+                return;
+            }
+
+            let summary = `📊 REKAP ABSENSI ${today}\n\n`;
+            
+            const stats = { Hadir: 0, Izin: 0, Sakit: 0, Alpha: 0 };
+            todayData.forEach(record => {
+                if (stats.hasOwnProperty(record.status)) {
+                    stats[record.status]++;
+                }
+            });
+
+            summary += `✅ Hadir: ${stats.Hadir} siswa\n`;
+            summary += `📝 Izin: ${stats.Izin} siswa\n`;
+            summary += `🤒 Sakit: ${stats.Sakit} siswa\n`;
+            summary += `❌ Alpha: ${stats.Alpha} siswa\n\n`;
+            summary += `Total: ${todayData.length} dari ${daftarSiswa.length} siswa`;
+
+            // Buat modal sederhana untuk menampilkan ringkasan
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Rekap Absensi</h3>
+                    <pre class="text-sm text-gray-700 whitespace-pre-wrap mb-6">${summary}</pre>
+                    <button onclick="this.closest('.fixed').remove()" 
+                            class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        // Show loading indicator
+        function showLoading(show) {
+            const indicator = document.getElementById('loading-indicator');
+            indicator.classList.toggle('hidden', !show);
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-300 z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } text-white`;
+            
+            // Show toast
+            toast.style.transform = 'translateX(0)';
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+            }, 3000);
+        }
+
+        // Initialize aplikasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'990ed0aa7338efdf',t:'MTc2MDg2MTU5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
